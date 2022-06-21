@@ -6,11 +6,9 @@ const app: Application = express();
 const port: number = 3001;
 
 app.get("/getrestaurants", async (req, res) => {
-  console.log("trying to connect");
   await prisma.$connect();
   res.send(await getRestaurants());
   await prisma.$disconnect();
-  console.log("connected");
 });
 
 async function getRestaurants() {
