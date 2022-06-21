@@ -36,14 +36,14 @@ model Tag {
 }
 
 model Food {
-  id            String      @id @default(auto()) @map("_id") @db.ObjectId
-  category      String
-  meals         Meal[]
-  Restaurants   Restaurant? @relation(fields: [restaurantsId], references: [id])
-  restaurantsId String?     @db.ObjectId
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  deletedAt     DateTime?
+  id           String      @id @default(auto()) @map("_id") @db.ObjectId
+  category     String
+  meals        Meal[]
+  Restaurants  Restaurant? @relation(fields: [restaurantId], references: [id])
+  restaurantId String?     @db.ObjectId
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  deletedAt    DateTime?
 }
 
 model Meal {
