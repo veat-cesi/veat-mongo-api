@@ -9,10 +9,10 @@ generator client {
 }
 
 model Restaurant {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  name      String    @unique
-  email     String    @unique
-  phone     String    @unique
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String   @unique
+  email     String   @unique
+  phone     String   @unique
   city      String
   address   String?
   img       String?
@@ -20,19 +20,20 @@ model Restaurant {
   tags      Tag[]
   food      Food[]
   rates     Rates[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deleted   Boolean? @default(false)
 }
 
 model Tag {
   id           String      @id @default(auto()) @map("_id") @db.ObjectId
+  cuid         String      @unique @default(cuid())
   name         String
   Restaurant   Restaurant? @relation(fields: [restaurantId], references: [id])
   restaurantId String?     @db.ObjectId
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
-  deletedAt    DateTime?
+  deleted      Boolean?    @default(false)
 }
 
 model Food {
@@ -43,20 +44,20 @@ model Food {
   restaurantId String?     @db.ObjectId
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
-  deletedAt    DateTime?
+  deleted      Boolean?    @default(false)
 }
 
 model Meal {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   name      String
   price     Float
   info      String?
   img       String?
-  Food      Food?     @relation(fields: [foodId], references: [id])
-  foodId    String?   @db.ObjectId
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
+  Food      Food?    @relation(fields: [foodId], references: [id])
+  foodId    String?  @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deleted   Boolean? @default(false)
 }
 
 model Rates {
@@ -66,5 +67,5 @@ model Rates {
   restaurantId String?     @db.ObjectId
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
-  deletedAt    DateTime?
+  deleted      Boolean?    @default(false)
 }
