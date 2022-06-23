@@ -91,11 +91,26 @@ app.post("/deleteRestaurant", async (req: Request, res: Response) => {
 async function getAllRestaurants() {
   return await prisma.restaurant.findMany({
     include: {
-      tags: true,
-      rates: true,
+      tags: {
+        where: {
+          deleted: false,
+        },
+      },
+      rates: {
+        where: {
+          deleted: false,
+        },
+      },
       food: {
+        where: {
+          deleted: false,
+        },
         include: {
-          meals: true,
+          meals: {
+            where: {
+              deleted: false,
+            },
+          },
         },
       },
     },
