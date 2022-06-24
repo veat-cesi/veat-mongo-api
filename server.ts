@@ -37,7 +37,13 @@ interface Restaurant {
   city: string;
   address: string;
   about: string;
+  img: string;
 }
+
+app.get("/getRestaurants", async (req: Request, res: Response) => {
+  await prisma.$connect();
+  res.send(await getRestaurants());
+});
 
 app.get("/getAllRestaurants", async (req: Request, res: Response) => {
   await prisma.$connect();
@@ -64,7 +70,7 @@ app.post("/addRestaurant", async (req: Request, res: Response) => {
     await addTags(req.body.restaurant.tags);
     await addFood(id, req.body.restaurant.food);
     await prisma.$disconnect();
-    res.status(200);
+    res.send(await getRestaurantById(id));
   } else {
     await prisma.$disconnect();
     res
@@ -88,8 +94,48 @@ app.post("/deleteRestaurant", async (req: Request, res: Response) => {
   await prisma.$disconnect();
 });
 
+async function getRestaurants() {
+  return await prisma.restaurant.findMany({
+    where: {
+      deleted: false,
+    },
+  });
+}
+
 async function getAllRestaurants() {
   return await prisma.restaurant.findMany({
+    include: {
+      tags: {
+        where: {
+          deleted: false,
+        },
+      },
+      rates: {
+        where: {
+          deleted: false,
+        },
+      },
+      food: {
+        where: {
+          deleted: false,
+        },
+        include: {
+          meals: {
+            where: {
+              deleted: false,
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+async function getRestaurantById(id: string) {
+  return await prisma.restaurant.findFirst({
+    where: {
+      id: id,
+    },
     include: {
       tags: {
         where: {
@@ -134,6 +180,7 @@ async function addRestaurant(restaurant: Restaurant) {
       city: restaurant.city,
       address: restaurant.address,
       about: restaurant.about,
+      img: restaurant.img,
     },
   });
   return response.id;
@@ -151,6 +198,7 @@ async function updateRestaurant(id: string, restaurant: Restaurant) {
       city: restaurant.city,
       address: restaurant.address,
       about: restaurant.about,
+      img: restaurant.img,
     },
   });
 }
