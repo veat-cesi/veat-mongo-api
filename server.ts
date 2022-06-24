@@ -38,11 +38,17 @@ interface Restaurant {
   address: string;
   about: string;
   img: string;
+  rates: number;
 }
 
 app.get("/getRestaurants", async (req: Request, res: Response) => {
   await prisma.$connect();
   res.send(await getRestaurants());
+});
+
+app.get("/getFeaturedRestaurants", async (req: Request, res: Response) => {
+  await prisma.$connect();
+  res.send(await getFeaturedRestaurants());
 });
 
 app.get("/getAllRestaurants", async (req: Request, res: Response) => {
@@ -102,15 +108,19 @@ async function getRestaurants() {
   });
 }
 
+async function getFeaturedRestaurants() {
+  return await prisma.restaurant.findMany({
+    where: {
+      featured: true,
+      deleted: false,
+    },
+  });
+}
+
 async function getAllRestaurants() {
   return await prisma.restaurant.findMany({
     include: {
       tags: {
-        where: {
-          deleted: false,
-        },
-      },
-      rates: {
         where: {
           deleted: false,
         },
@@ -138,11 +148,6 @@ async function getRestaurantById(id: string) {
     },
     include: {
       tags: {
-        where: {
-          deleted: false,
-        },
-      },
-      rates: {
         where: {
           deleted: false,
         },
@@ -181,6 +186,8 @@ async function addRestaurant(restaurant: Restaurant) {
       address: restaurant.address,
       about: restaurant.about,
       img: restaurant.img,
+      featured: false,
+      rates: restaurant.rates,
     },
   });
   return response.id;
@@ -210,7 +217,6 @@ async function deleteRestaurant(id: string) {
     },
     include: {
       tags: true,
-      rates: true,
       food: {
         include: {
           meals: true,
