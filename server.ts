@@ -497,5 +497,5 @@ async function undeleteMeal(meal: any) {
 }
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  console.log(`VEAT MONGO API listening on port ${port}`);
 });
