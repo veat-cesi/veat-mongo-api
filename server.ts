@@ -1,6 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import e from "express";
-import express, { Application, Request, response, Response } from "express";
+import express, { Application, Request, Response } from "express";
 
 var bodyParser = require("body-parser");
 
@@ -57,9 +56,9 @@ app.get("/getAllRestaurants", async (req: Request, res: Response) => {
   await prisma.$disconnect();
 });
 
-app.get("/getRestaurantByName", async (req: Request, res: Response) => {
+app.get("/getRestaurantByName/:name", async (req: Request, res: Response) => {
   await prisma.$connect();
-  res.send(await getRestaurantByName(req.body.name));
+  res.send(await getRestaurantByName(req.params.name));
   await prisma.$disconnect();
 });
 
@@ -173,6 +172,21 @@ async function getRestaurantByName(name: string) {
     where: {
       name: name,
     },
+    include: {
+      tags: {where: {deleted: false}},
+      food: {
+        include: {
+          meals: {
+            where: {
+              deleted: false,
+            }
+          },
+        },
+        where: {
+          deleted: false,
+        }
+      }
+    }
   });
 }
 
