@@ -99,6 +99,14 @@ app.post("/deleteRestaurant", async (req: Request, res: Response) => {
   await prisma.$disconnect();
 });
 
+app.post("/addOrder", async (req: Request, res: Response) => {
+  console.log(req.body);
+  await prisma.$connect();
+  const order = await addOrder(req.body);
+  await prisma.$disconnect();
+  res.send(order);
+});
+
 async function getRestaurants() {
   return await prisma.restaurant.findMany({
     where: {
@@ -173,7 +181,7 @@ async function getRestaurantByName(name: string) {
       name: name,
     },
     include: {
-      tags: {where: {deleted: false}},
+      tags: { where: { deleted: false } },
       food: {
         include: {
           meals: {
@@ -506,6 +514,15 @@ async function undeleteMeal(meal: any) {
     },
     data: {
       deleted: false,
+    },
+  });
+}
+
+async function addOrder(order: any) {
+  return await prisma.order.create({
+    data: {
+      meals: order.meals,
+      total: order.total,
     },
   });
 }

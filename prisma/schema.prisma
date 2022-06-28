@@ -60,3 +60,12 @@ model Meal {
   updatedAt DateTime @updatedAt
   deleted   Boolean? @default(false)
 }
+
+model Order {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  meals     Json
+  total     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deleted   Boolean? @default(false)
+}
