@@ -62,6 +62,12 @@ app.get("/getRestaurantByName/:name", async (req: Request, res: Response) => {
   await prisma.$disconnect();
 });
 
+app.get("/getRestaurantById/:id", async (req: Request, res: Response) => {
+  await prisma.$connect();
+  res.send(await getRestaurantInfoById(req.params.id));
+  await prisma.$disconnect();
+});
+
 app.post("/addRestaurant", async (req: Request, res: Response) => {
   await prisma.$connect();
   if ((await getRestaurantByName(req.body.restaurant.name)) == null) {
@@ -86,11 +92,18 @@ app.post("/addRestaurant", async (req: Request, res: Response) => {
 
 app.post("/updateRestaurant", async (req: Request, res: Response) => {
   await prisma.$connect();
-  await updateRestaurant(req.body.restaurantId, req.body.restaurant);
-  await updateTags(req.body.restaurantId, req.body.restaurant.tags);
-  await updateFood(req.body.restaurantId, req.body.restaurant.food);
+
+  if (req.body.restaurant.name != undefined){
+    await updateRestaurant(req.body.restaurantId, req.body.restaurant);
+  }
+  if(req.body.restaurant.tags != undefined){
+    await updateTags(req.body.restaurantId, req.body.restaurant.tags);
+  }
+  if (req.body.restaurant.food != undefined){
+    await updateFood(req.body.restaurantId, req.body.restaurant.food);
+  }
   await prisma.$disconnect();
-  res.redirect("/getAllRestaurants");
+  res.sendStatus(200);
 });
 
 app.post("/deleteRestaurant", async (req: Request, res: Response) => {
@@ -100,7 +113,6 @@ app.post("/deleteRestaurant", async (req: Request, res: Response) => {
 });
 
 app.post("/addOrder", async (req: Request, res: Response) => {
-  console.log(req.body);
   await prisma.$connect();
   const order = await addOrder(req.body);
   await prisma.$disconnect();
@@ -172,6 +184,14 @@ async function getRestaurantById(id: string) {
         },
       },
     },
+  });
+}
+
+async function getRestaurantInfoById(id: string) {
+  return await prisma.restaurant.findFirst({
+    where: {
+      id: id,
+    }
   });
 }
 
