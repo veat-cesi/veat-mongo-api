@@ -157,6 +157,21 @@ app.get("/getCategoryName/:id", async (req: Request, res: Response) => {
   await prisma.$disconnect();
 });
 
+app.post("/updateMeal", async (req: Request, res: Response) => {
+  await prisma.$connect();
+  await updateOneMeal(req.body.meal)
+  res.send(await getMealbyId(req.body.meal.id));
+  await prisma.$disconnect();
+});
+
+app.post("/deleteMeal", async (req: Request, res: Response) => {
+  console.log(req.body.meal)
+  await prisma.$connect();
+  await deleteMeal(req.body.meal)
+  res.send(await getMealbyCategory(req.body.meal.foodId));
+  await prisma.$disconnect();
+});
+
 app.post("/addOrder", async (req: Request, res: Response) => {
   await prisma.$connect();
   const order = await addOrder(req.body);
@@ -444,6 +459,15 @@ async function updateCategory(id: string, category: string){
   });
 }
 
+async function getMealbyId(id: string){
+  return await prisma.meal.findFirst({
+    where: {
+      id: id,
+      deleted: false
+    }
+  })
+}
+
 async function getMealbyCategory(idCategory: string){
   return await prisma.meal.findMany({
     where: {
@@ -578,6 +602,20 @@ async function addMeal(id: string, meals: Meal[]) {
         img: meal.img,
       },
     });
+  });
+}
+
+async function updateOneMeal(meal: any){
+  return await prisma.meal.update({
+    where: {
+      id: meal.id
+    },
+    data: {
+      name: meal.name,
+      price: meal.price,
+      info: meal.info,
+      img: meal.img
+    },
   });
 }
 
