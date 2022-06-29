@@ -93,13 +93,13 @@ app.post("/addRestaurant", async (req: Request, res: Response) => {
 app.post("/updateRestaurant", async (req: Request, res: Response) => {
   await prisma.$connect();
 
-  if (req.body.restaurant.name != undefined){
+  if (req.body.restaurant.name != undefined) {
     await updateRestaurant(req.body.restaurantId, req.body.restaurant);
   }
-  if(req.body.restaurant.tags != undefined){
+  if (req.body.restaurant.tags != undefined) {
     await updateTags(req.body.restaurantId, req.body.restaurant.tags);
   }
-  if (req.body.restaurant.food != undefined){
+  if (req.body.restaurant.food != undefined) {
     await updateFood(req.body.restaurantId, req.body.restaurant.food);
   }
   await prisma.$disconnect();
@@ -112,15 +112,48 @@ app.post("/deleteRestaurant", async (req: Request, res: Response) => {
   await prisma.$disconnect();
 });
 
-app.get("/getProductsByRestaurantId/:id", async (req: Request, res: Response) => {
+app.get(
+  "/getProductsByRestaurantId/:id",
+  async (req: Request, res: Response) => {
+    await prisma.$connect();
+    res.send(await getProductsByRestaurantId(req.params.id));
+    await prisma.$disconnect();
+  }
+);
+
+app.post("/addCategory", async (req: Request, res: Response) => {
   await prisma.$connect();
-  res.send(await getProductsByRestaurantId(req.params.id));
+  await addCategory(req.body.restaurantId, req.body.category);
+  res.send(await getProductsByRestaurantId(req.body.restaurantId))
   await prisma.$disconnect();
 });
 
-app.delete("/deleteCategory/:id", async (req: Request, res: Response) => {
+app.post("/updateCategory", async (req: Request, res: Response) => {
   await prisma.$connect();
-  res.send(await deleteFood(req.params.id));
+  await req.body.products.forEach(async (product: any)=>{
+    await updateCategory(product.id, product.category);
+  });
+  console.log(await getProductsByRestaurantId(req.body.restaurantId))
+  res.send(await getProductsByRestaurantId(req.body.restaurantId))
+  await prisma.$disconnect();
+});
+
+app.post("/deleteCategory", async (req: Request, res: Response) => {
+  await prisma.$connect();
+  await deleteFood(req.body.product);
+  res.send(await getProductsByRestaurantId(req.body.product.restaurantId));
+  await prisma.$disconnect();
+});
+
+app.get("/getProductList/:id", async (req: Request, res: Response) => {
+  await prisma.$connect();
+  res.send(await getMealbyCategory(req.params.id));
+  await prisma.$disconnect();
+});
+
+app.get("/getCategoryName/:id", async (req: Request, res: Response) => {
+  await prisma.$connect();
+  res.send(await getCategoryName(req.params.id));
   await prisma.$disconnect();
 });
 
@@ -131,7 +164,7 @@ app.post("/addOrder", async (req: Request, res: Response) => {
   res.send(order);
 });
 
-async function getProductsByRestaurantId(restaurantId: string){
+async function getProductsByRestaurantId(restaurantId: string) {
   return await prisma.food.findMany({
     where: {
       restaurantId: restaurantId,
@@ -140,11 +173,11 @@ async function getProductsByRestaurantId(restaurantId: string){
     include: {
       meals: {
         where: {
-          deleted: false
-        }
+          deleted: false,
+        },
       },
     },
-  })
+  });
 }
 
 async function getRestaurants() {
@@ -219,7 +252,7 @@ async function getRestaurantInfoById(id: string) {
   return await prisma.restaurant.findFirst({
     where: {
       id: id,
-    }
+    },
   });
 }
 
@@ -235,14 +268,14 @@ async function getRestaurantByName(name: string) {
           meals: {
             where: {
               deleted: false,
-            }
+            },
           },
         },
         where: {
           deleted: false,
-        }
-      }
-    }
+        },
+      },
+    },
   });
 }
 
@@ -380,6 +413,46 @@ async function getFood(restaurantId: string) {
   });
 }
 
+async function getCategoryName(id: string){
+  return await prisma.food.findFirst({
+    where:{
+      id: id
+    },
+    select: {
+      category: true
+    }
+  })
+}
+
+async function addCategory(restaurantId: string, category: string){
+  return await prisma.food.create({
+    data: {
+      restaurantId: restaurantId,
+      category: category,
+    },
+  });
+}
+
+async function updateCategory(id: string, category: string){
+  return await prisma.food.update({
+    where: {
+      id: id
+    },
+    data: {
+      category: category,
+    },
+  });
+}
+
+async function getMealbyCategory(idCategory: string){
+  return await prisma.meal.findMany({
+    where: {
+      foodId: idCategory,
+      deleted: false,
+    }
+  })
+}
+
 async function addFood(id: string, foods: Food[]) {
   foods.forEach(async (food) => {
     const response = await prisma.food.create({
@@ -388,7 +461,9 @@ async function addFood(id: string, foods: Food[]) {
         category: food.category,
       },
     });
-    updateMeal(response.id, food.meals);
+    if(food.meals){
+      await updateMeal(response.id, food.meals);
+    }
   });
 }
 
@@ -453,8 +528,8 @@ async function deleteFood(food: any) {
       deleted: true,
     },
   });
-  food.meals.forEach((meal: Meal) => {
-    deleteMeal(meal);
+  food.meals.forEach(async (meal: Meal) => {
+    await deleteMeal(meal);
   });
 }
 
@@ -479,8 +554,8 @@ async function undeleteFood(food: any) {
       deleted: false,
     },
   });
-  food.meals.forEach((meal: Meal) => {
-    undeleteMeal(meal);
+  food.meals.forEach(async (meal: Meal) => {
+    await undeleteMeal(meal);
   });
 }
 
