@@ -178,9 +178,64 @@ app.post("/deleteMeal", async (req: Request, res: Response) => {
   res.send(await getMealbyCategory(req.body.meal.foodId));
   await prisma.$disconnect();
 });
+
 app.get("/getOrderListByRestaurantId/:id", async (req: Request, res: Response) => {
   await prisma.$connect();
   res.send(await getOrderListByRestaurantId(req.params.id));
+  await prisma.$disconnect();
+});
+
+app.get("/getAcceptedOrderListByRestaurantId/:id", async (req: Request, res: Response) => {
+  await prisma.$connect();
+  res.send(await getAcceptedOrderListByRestaurantId(req.params.id));
+  await prisma.$disconnect();
+});
+
+app.get("/getOrdersToDeliver", async (req: Request, res: Response) => {
+  await prisma.$connect();
+  res.send(await getOrdersToDeliver());
+  await prisma.$disconnect();
+});
+
+app.get("/getOrdersToDeliverName", async (req: Request, res: Response) => {
+  await prisma.$connect();
+  res.send(await getOrdersToDeliverName(req.body.restaurantId));
+  await prisma.$disconnect();
+});
+
+app.get("/getOrderToTake", async (req: Request, res: Response) => {
+  await prisma.$connect();
+  res.send(await getOrderToTake(req.body.orderId));
+  await prisma.$disconnect();
+});
+
+app.get("/orderAcceptedByRestaurant", async (req: Request, res: Response) => {
+  await prisma.$connect();
+  res.send(await acceptOrder(req.body.orderId));
+  await prisma.$disconnect();
+});
+
+app.get("/orderDeclinedByRestaurant", async (req: Request, res: Response) => {
+  await prisma.$connect();
+  res.send(await declineOrder(req.body.orderId));
+  await prisma.$disconnect();
+});
+
+app.get("/orderAcceptedByDelivery", async (req: Request, res: Response) => {
+  await prisma.$connect();
+  res.send(await acceptOrderByDelivery(req.body.orderId));
+  await prisma.$disconnect();
+});
+
+app.get("/orderTookByDelivery", async (req: Request, res: Response) => {
+  await prisma.$connect();
+  res.send(await tookOrderByDelivery(req.body.orderId));
+  await prisma.$disconnect();
+});
+
+app.get("/orderGivenByDelivery", async (req: Request, res: Response) => {
+  await prisma.$connect();
+  res.send(await gaveOrderByDelivery(req.body.orderId));
   await prisma.$disconnect();
 });
 
@@ -714,6 +769,100 @@ async function getOrderListByRestaurantId(idRestaurant: string){
   })
 }
 
+async function getAcceptedOrderListByRestaurantId(idRestaurant: string){
+  return await prisma.order.findMany({
+    where: {
+      restaurantId: idRestaurant,
+      status: 1,
+      deleted: false,
+    }
+  });
+};
+
+async function getOrdersToDeliver(){
+  return await prisma.order.findMany({
+    where: {
+      status: 1,
+      deleted: false,
+    }
+  });
+};
+
+async function getOrdersToDeliverName(restaurantId: string){
+  return await prisma.restaurant.findFirst({
+    where: {
+      id: restaurantId,
+      deleted: false,
+    }
+  });
+};
+
+async function getOrderToTake(orderId: string){
+  return await prisma.order.findFirst({
+    where: {
+      id: orderId,
+      status: 2,
+      deleted: false,
+    }
+  });
+};
+
+async function acceptOrder(orderId: string) {
+  return await prisma.order.update({
+    where:{
+      id: orderId
+    },
+    data: {
+      status: 1
+    },
+  });
+};
+
+async function declineOrder(orderId: string) {
+  return await prisma.order.update({
+    where:{
+      id: orderId
+    },
+    data: {
+      status: 99,
+      deleted: true
+    },
+  });
+};
+
+async function acceptOrderByDelivery (orderId: string) {
+  return await prisma.order.update({
+    where:{
+      id: orderId
+    },
+    data: {
+      status: 2,
+    },
+  });
+};
+
+async function tookOrderByDelivery (orderId: string) {
+  return await prisma.order.update({
+    where:{
+      id: orderId
+    },
+    data: {
+      status: 3,
+    },
+  });
+};
+
+async function gaveOrderByDelivery (orderId: string) {
+  return await prisma.order.update({
+    where:{
+      id: orderId,
+    },
+    data: {
+      status: 10,
+    },
+  });
+};
+
 async function addOrder(order: any) {
   return await prisma.order.create({
     data: {
@@ -722,7 +871,7 @@ async function addOrder(order: any) {
       restaurantId: order.restaurantId,
     },
   });
-}
+};
 
 app.listen(port, () => {
   console.log(`VEAT MONGO API listening on port ${port}`);
