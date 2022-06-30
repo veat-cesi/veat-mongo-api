@@ -178,6 +178,12 @@ app.post("/deleteMeal", async (req: Request, res: Response) => {
   res.send(await getMealbyCategory(req.body.meal.foodId));
   await prisma.$disconnect();
 });
+app.get("/getOrderListByRestaurantId/:id", async (req: Request, res: Response) => {
+  await prisma.$connect();
+  res.send(await getOrderListByRestaurantId(req.params.id));
+  await prisma.$disconnect();
+});
+
 
 app.post("/addOrder", async (req: Request, res: Response) => {
   await prisma.$connect();
@@ -698,11 +704,21 @@ async function undeleteMeal(meal: any) {
   });
 }
 
+async function getOrderListByRestaurantId(idRestaurant: string){
+  return await prisma.order.findMany({
+    where: {
+      restaurantId: idRestaurant,
+      deleted: false,
+    }
+  })
+}
+
 async function addOrder(order: any) {
   return await prisma.order.create({
     data: {
       meals: order.meals,
       total: order.total,
+      restaurantId: order.restaurantId,
     },
   });
 }
