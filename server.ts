@@ -708,6 +708,7 @@ async function getOrderListByRestaurantId(idRestaurant: string){
   return await prisma.order.findMany({
     where: {
       restaurantId: idRestaurant,
+      status: 0,
       deleted: false,
     }
   })
