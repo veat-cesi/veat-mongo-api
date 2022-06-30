@@ -157,6 +157,13 @@ app.get("/getCategoryName/:id", async (req: Request, res: Response) => {
   await prisma.$disconnect();
 });
 
+app.post("/addMeal", async (req: Request, res: Response) => {
+  await prisma.$connect();
+  await addMeal(req.body.categoryId, [req.body.meal])
+  res.send(await getMealbyId(req.body.meal.id));
+  await prisma.$disconnect();
+});
+
 app.post("/updateMeal", async (req: Request, res: Response) => {
   await prisma.$connect();
   await updateOneMeal(req.body.meal)
